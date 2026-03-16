@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Easy Ticket Redirect test
 // @namespace    http://tampermonkey.net/
-// @version      0.14
+// @version      0.15
 // @description  Konfigurowalne przyciski, wyrównanie układu, odporność na przeładowania AJAX (znikanie po wysłaniu wiadomości).
 // @author       Bartłomiej Dąbrowski + GP
 // @match        https://supportislove2.baselinker.com/tickets*
