@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Easy Ticket Redirect
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.01
 // @description  Konfigurowalne przyciski, wyrównanie układu, odporność na przeładowania AJAX (znikanie po wysłaniu wiadomości).
 // @author       Bartłomiej Dąbrowski + GP
 // @match        https://supportislove2.baselinker.com/tickets*
@@ -129,7 +129,7 @@
                     const clickableSpan = document.createElement('span');
                     clickableSpan.id = 'kam-trigger';
                     clickableSpan.style.cursor = 'pointer';
-                    clickableSpan.style.color = 'red';
+                    clickableSpan.style.color = '#3bafda';
                     clickableSpan.style.fontWeight = 'bold';
                     clickableSpan.style.textDecoration = 'underline';
                     clickableSpan.title = `Kliknij, aby przekierować zgłoszenie do: ${kamName}`;
