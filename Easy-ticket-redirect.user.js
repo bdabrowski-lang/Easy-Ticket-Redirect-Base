@@ -8,6 +8,7 @@
 // @connect      raw.githubusercontent.com
 // @updateURL    https://raw.githubusercontent.com/bdabrowski-lang/Easy-Ticket-Redirect-Base/main/Easy-ticket-redirect.user.js
 // @downloadURL  https://raw.githubusercontent.com/bdabrowski-lang/Easy-Ticket-Redirect-Base/main/Easy-ticket-redirect.user.js
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=baselinker.com
 // @grant        none
 // ==/UserScript==
 
