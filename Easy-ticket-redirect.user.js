@@ -6,8 +6,8 @@
 // @author       Bartłomiej Dąbrowski + GP
 // @match        https://supportislove2.baselinker.com/tickets*
 // @connect      raw.githubusercontent.com
-// @updateURL    https://raw.githubusercontent.com/bdabrowski-lang/Easy-Ticket-Redirect-Base/main/easy-ticket-redirect.user.js
-// @downloadURL  https://raw.githubusercontent.com/bdabrowski-lang/Easy-Ticket-Redirect-Base/main/easy-ticket-redirect.user.js
+// @updateURL    https://raw.githubusercontent.com/bdabrowski-lang/Easy-Ticket-Redirect-Base/main/Easy-ticket-redirect.user.js
+// @downloadURL  https://raw.githubusercontent.com/bdabrowski-lang/Easy-Ticket-Redirect-Base/main/Easy-ticket-redirect.user.js
 // @grant        none
 // ==/UserScript==
 
