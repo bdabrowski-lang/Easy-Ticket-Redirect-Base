@@ -25,6 +25,7 @@
         { label: 'Subs', searchName: 'Subscriptions', color: '#16a085', textColor: "#FFF" },
         { label: 'All/Ali/Temu', searchName: 'Team Allegro/Ali/Temu', color: '#FF5A00', textColor: "#FFF" },
         { label: 'Mirakl', searchName: 'Team Mirakl', color: '#c0392b', textColor: "#FFF" },
+        { label: 'Implementation', searchName: 'Team Implementation', color: '#e84393', textColor: "#FFF" },
         { label: '🏢 Enterprise', searchName: 'Enterprise Support', color: '#ffaa00', textColor: "#000" }
     ];
     // ==============================
