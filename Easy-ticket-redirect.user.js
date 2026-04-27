@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Easy Ticket Redirect
 // @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Konfigurowalne przyciski, odporność na AJAX, zarządzanie (GUI), niewidzialne makro KAM (przycisk po prawej).
+// @version      2.1
+// @description  Konfigurowalne przyciski, odporność na AJAX, zarządzanie (GUI), drag & drop, auto-makro KAM, twarde zamykanie modala.
 // @author       Bartłomiej Dąbrowski + GP
 // @match        https://supportislove2.baselinker.com/tickets*
 // @connect      raw.githubusercontent.com
@@ -15,7 +15,7 @@
 (function() {
     'use strict';
 
-    // === WSTRZYKNIĘCIE CSS DLA NIEWIDZIALNEGO MAKRA ===
+    // === WSTRZYKNIĘCIE CSS DLA NIEWIDZIALNEGO MAKRA I DRAG&DROP ===
     const style = document.createElement('style');
     style.textContent = `
         body.silent-macro-running #ticket_modal {
@@ -28,11 +28,19 @@
             visibility: hidden !important;
             transition: none !important;
         }
+        .kam-drag-over {
+            box-shadow: inset 0 2px 0 0 #3bafda !important;
+            background-color: rgba(59, 175, 218, 0.05) !important;
+        }
+        .kam-draggable-row:active {
+            cursor: grabbing !important;
+        }
     `;
     document.head.appendChild(style);
 
     // === DOMYŚLNA KONFIGURACJA ZESPOŁÓW ===
     const DEFAULT_TEAMS = [
+        { label: 'Priv', icon: 'fa-user', searchName: 'Bartlomiej Dabrowski', color: '#0097e6', textColor: "#FFF" },
         { label: 'Shops', icon: 'fa-shopping-cart', searchName: 'Team Shops', color: '#2980b9', textColor: "#FFF" },
         { label: 'Catalog', icon: 'fa-tags', searchName: 'Team Catalog', color: '#34495e', textColor: "#FFF" },
         { label: 'Couriers', icon: 'fa-truck', searchName: 'Team Couriers', color: '#d35400', textColor: "#FFF" },
@@ -51,7 +59,7 @@
         'fa-credit-card', 'fa-cubes', 'fa-server', 'fa-database', 'fa-cogs', 'fa-building',
         'fa-tags', 'fa-envelope', 'fa-star', 'fa-check', 'fa-exclamation-triangle',
         'fa-wrench', 'fa-pencil', 'fa-exchange', 'fa-bullhorn', 'fa-bolt', 'fa-rocket',
-        'fa-users', 'fa-pie-chart', 'fa-money', 'fa-archive', 'fa-paper-plane', 'fa-headphones'
+        'fa-users', 'fa-pie-chart', 'fa-money', 'fa-archive', 'fa-paper-plane', 'fa-headphones', 'fa-bars'
     ];
 
     let TARGET_TEAMS = [];
@@ -221,7 +229,6 @@
             document.body.classList.remove('modal-open');
             document.body.style.paddingRight = '';
 
-            // Usuwamy flagę niewidzialności po zakończeniu zamykania modala
             document.body.classList.remove('silent-macro-running');
         }, 250);
     }
@@ -307,12 +314,10 @@
                 return btn;
             };
 
-            // Rysujemy standardowe zespoły najpierw
             TARGET_TEAMS.forEach(team => {
                 btnContainer.appendChild(createBtn(team));
             });
 
-            // Jeżeli klient ma tag Enterprise, dodaj inteligentny złoty przycisk KAM na KOŃCU (po prawej stronie)
             if (hasEnterprise && ticketRow) {
                 const kamAutoBtn = document.createElement('button');
                 kamAutoBtn.innerHTML = `<i class="fa fa-star" style="margin-right: 4px;"></i>Przekaż do KAM`;
@@ -324,7 +329,7 @@
                 kamAutoBtn.style.padding = '3px 8px';
                 kamAutoBtn.style.borderRadius = '3px';
                 kamAutoBtn.style.cursor = 'pointer';
-                kamAutoBtn.style.marginLeft = '10px'; // Odstęp od reszty przycisków
+                kamAutoBtn.style.marginLeft = '10px';
                 kamAutoBtn.style.boxShadow = '0 0 5px rgba(241, 196, 15, 0.5)';
                 kamAutoBtn.title = "Pobiera przypisanego KAMa z profilu klienta i automatycznie go wybiera";
 
@@ -340,7 +345,6 @@
                         return;
                     }
 
-                    // Trik CSS - czyni okno modalne całkowicie niewidocznym
                     document.body.classList.add('silent-macro-running');
 
                     userSpan.click();
@@ -425,6 +429,7 @@
 
     let editIndex = -1;
     let selectedIcon = 'none';
+    let dragStartIndex = null; // Do Drag & Drop
 
     function injectSettingsButton() {
         const paginateDiv = document.getElementById('datatable_paginate');
@@ -521,6 +526,7 @@
             <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:13px;">
                 <thead>
                     <tr style="border-bottom:2px solid ${borderColor}; text-align:left;">
+                        <th style="padding:8px 5px; width:30px;"></th>
                         <th style="padding:8px 5px;">Etykieta (i Ikona)</th>
                         <th style="padding:8px 5px;">Cel (Szukany folder)</th>
                         <th style="padding:8px 5px;">Wygląd</th>
@@ -636,11 +642,17 @@
 
         TARGET_TEAMS.forEach((team, index) => {
             const tr = document.createElement('tr');
+            tr.className = 'kam-draggable-row';
             tr.style.borderBottom = `1px solid ${borderColor}`;
+            tr.style.cursor = 'grab';
+            tr.draggable = true;
 
             let iconHtml = (team.icon && team.icon !== 'none') ? `<i class="fa ${team.icon}" style="margin-right:4px;"></i>` : '';
 
             tr.innerHTML = `
+                <td style="padding:8px 5px; text-align:center; color:#95a5a6; width:30px;">
+                    <i class="fa fa-bars"></i>
+                </td>
                 <td style="padding:8px 5px;">${iconHtml}${team.label}</td>
                 <td style="padding:8px 5px;">${team.searchName}</td>
                 <td style="padding:8px 5px;">
@@ -651,6 +663,47 @@
                     <button class="kam-delete-btn" data-index="${index}" style="padding:3px 8px; background:#c0392b; color:#fff; border:none; border-radius:3px; cursor:pointer; font-size:11px;">Usuń</button>
                 </td>
             `;
+
+            // === HTML5 DRAG & DROP EVENTS ===
+            tr.addEventListener('dragstart', function(e) {
+                dragStartIndex = index;
+                this.style.opacity = '0.4';
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML); // Wymagane przez Firefoxa
+            });
+
+            tr.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                this.classList.add('kam-drag-over');
+                return false;
+            });
+
+            tr.addEventListener('dragleave', function(e) {
+                this.classList.remove('kam-drag-over');
+            });
+
+            tr.addEventListener('drop', function(e) {
+                e.stopPropagation();
+                this.classList.remove('kam-drag-over');
+                const dropTargetIndex = index;
+
+                if (dragStartIndex !== dropTargetIndex && dragStartIndex !== null) {
+                    const draggedTeam = TARGET_TEAMS.splice(dragStartIndex, 1)[0];
+                    TARGET_TEAMS.splice(dropTargetIndex, 0, draggedTeam);
+                    saveTeamsToStorage();
+                    renderTeamsTable();
+                    resetForm(); // Resetujemy form w razie zmiany indeksów podczas edycji
+                }
+                return false;
+            });
+
+            tr.addEventListener('dragend', function(e) {
+                this.style.opacity = '1';
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(r => r.classList.remove('kam-drag-over'));
+            });
+
             tbody.appendChild(tr);
         });
 
