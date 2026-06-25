@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Easy Ticket Redirect
 // @namespace    http://tampermonkey.net/
-// @version      2.1
+// @version      2.2
 // @description  Konfigurowalne przyciski, odporność na AJAX, zarządzanie (GUI), drag & drop, auto-makro KAM, twarde zamykanie modala.
 // @author       Bartłomiej Dąbrowski + GP
 // @match        https://supportislove2.baselinker.com/tickets*
@@ -433,9 +433,9 @@
 
     function injectSettingsButton() {
         const paginateDiv = document.getElementById('datatable_paginate');
-        if (!paginateDiv) return;
+        if (!paginateDiv) return false;
 
-        if (document.getElementById('kam-settings-trigger-btn')) return;
+        if (document.getElementById('kam-settings-trigger-btn')) return true;
 
         if (window.getComputedStyle(paginateDiv).position === 'static') {
             paginateDiv.style.position = 'relative';
@@ -469,6 +469,7 @@
         };
 
         paginateDiv.appendChild(gearBtn);
+        return true;
     }
 
     function closeSettingsModal() {
@@ -777,10 +778,37 @@
         document.getElementById('kam-btn-cancel-edit').style.display = 'none';
     }
 
-    setInterval(() => {
-        processModal();
+    // Zastąpienie setInterval(500ms) obserwatorami — wywoływanie tylko przy zmianach DOM
+    (function setupObservers() {
+        // Pierwsze uruchomienie
         processExpandedTickets();
-        injectSettingsButton();
-    }, 500);
+        processModal();
+
+        // Jednorazowa iniekcja przycisku ustawień + obserwator w razie potrzeby
+        if (!injectSettingsButton()) {
+            const paginateObs = new MutationObserver(() => {
+                if (injectSettingsButton()) paginateObs.disconnect();
+            });
+            paginateObs.observe(document.body, { childList: true, subtree: false });
+        }
+
+        // Obserwator rozwinięć ticketów (dodanie td.ticket_info)
+        const ticketsRoot = document.getElementById('support_tickets') || document.body;
+        const ticketObs = new MutationObserver(mutations => {
+            for (const m of mutations) {
+                if (m.addedNodes.length > 0) { processExpandedTickets(); return; }
+            }
+        });
+        ticketObs.observe(ticketsRoot, { childList: true, subtree: true });
+
+        // Obserwator zmian w modalu (zawartość ticket_modal)
+        let modalDebounce = null;
+        const modalTarget = document.getElementById('ticket_modal') || document.body;
+        const modalObs = new MutationObserver(() => {
+            clearTimeout(modalDebounce);
+            modalDebounce = setTimeout(() => { processModal(); injectSettingsButton(); }, 80);
+        });
+        modalObs.observe(modalTarget, { childList: true, subtree: true });
+    })();
 
 })();
